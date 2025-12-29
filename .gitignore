@@ -1,1 +1,86 @@
-./myenv
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# If you named it differently
+myenv/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# =========================
+# Data (DO NOT COMMIT RAW DATA)
+# =========================
+data/raw/*
+data/preprocessed/*
+data/features/*
+data/predictions/*
+
+# Allow placeholder files
+!data/**/.gitkeep
+
+# =========================
+# Artifacts (models, metrics)
+# =========================
+artifacts/*
+models/*
+outputs/*
+metrics/*
+logs/*
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.log
+*.swp
+*.bak
+
+# =========================
+# Coverage
+# =========================
+.coverage
+htmlcov/
+
+# =========================
+# Docker (optional)
+# =========================
+docker-compose.override.yml
