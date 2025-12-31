@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn import StandardScaler
+from sklearn.preprocessing import StandardScaler
 
 def build_features(df: pd.DataFrame, target_column: str = "Churn"):
     """
@@ -40,7 +40,7 @@ def build_features(df: pd.DataFrame, target_column: str = "Churn"):
  
     binary_columns = [
         "Partner", "Dependents",
-        "PhoneService", "PaperlessBilling"
+        "PhoneService", "PaperlessBilling",  "SeniorCitizen" 
     ]
     df = _encode_binary_columns(df, binary_columns)
 
@@ -53,12 +53,31 @@ def build_features(df: pd.DataFrame, target_column: str = "Churn"):
    
     df = _scale_numerical_columns(df)
 
-   
+
+    non_numeric_cols = df.select_dtypes(include="object").columns.tolist()
+
+    if non_numeric_cols:
+        print(" Non-numeric columns remaining after feature engineering:")
+        for col in non_numeric_cols:
+            print(f" - {col}: {df[col].unique()[:5]}")
+        raise AssertionError("Non-numeric columns remain")
+
+
+    na_cols = df.columns[df.isnull().any()]
+    if len(na_cols) > 0:
+        print(" Columns with missing values:")
+        for col in na_cols:
+            print(f"{col}: {df[col].isnull().sum()}")
+    
+    
+    df = df.astype(float)
+
     assert df.isnull().sum().sum() == 0, "Missing values detected"
-    assert df.select_dtypes(include="object").empty, "Non-numeric columns remain"
     assert len(df) == len(y), "Feature/target length mismatch"
+    print(df.dtypes[df.dtypes == "object"])
 
     return df, y
+
 
 
 def _extract_target(df, target_column: str) -> pd.Series:
@@ -118,41 +137,31 @@ def _handle_service_columns(df: pd.DataFrame, service_columns: list) -> pd.DataF
     return df
 
 def _encode_binary_columns(df: pd.DataFrame, binary_columns: list) -> pd.DataFrame:
-    """
-    Encode binary categorical columns to numerical values.
-
-    Parameters:
-    df (pd.DataFrame): Input DataFrame containing raw data.
-    binary_columns (list): List of binary categorical column names.
-
-    Returns:
-    pd.DataFrame: DataFrame with encoded binary columns.
-    """
+    
     for column in binary_columns:
-        df[column] = df[column].map({'Yes': 1, 'No': 0})
+        if df[column].dtype == "object":
+            df[column] = df[column].map({'Yes': 1, 'No': 0})
+        else:
+            df[column] = df[column].astype(int)
     return df
-
 
 def _engineer_tenure(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Engineer tenure-related features.
-
-    Parameters:
-    df (pd.DataFrame): Input DataFrame containing raw data.
-
-    Returns:
-    pd.DataFrame: DataFrame with engineered tenure features.
-    """
-    df['tenure_group'] = pd.cut(df['tenure'],bins = [0, 12, 24, 48, 72], labels = ['0-12', '13-24', '25-48', '49+'])
-    df.drop(columns = ['tenure'], inplace = True)
+    df["tenure_group"] = pd.cut(
+        df["tenure"],
+        bins=[-1, 12, 24, 48, float("inf")],
+        labels=["0-12", "13-24", "25-48", "49+"]
+    )
+    df.drop(columns=["tenure"], inplace=True)
     return df
 
-def _encode_categorical_columns(df):
-    categorical_cols = [
-        "gender", "Contract",
-        "InternetService", "PaymentMethod",
-        "tenure_group"
-    ]
+
+def _encode_categorical_columns(df: pd.DataFrame) -> pd.DataFrame:
+    categorical_cols = df.select_dtypes(include=["object", "category"]).columns
+    
+ 
+    for col in categorical_cols:
+        df[col] = df[col].astype(str)
+    
     return pd.get_dummies(df, columns=categorical_cols, drop_first=True)
 
 
